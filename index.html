@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHBS — Correct Horse Battery Staple</title>
+<meta name="description" content="CHBS generates extremely secure, memorable, high-entropy passphrases by randomizing both words and structure — entirely in your browser.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="bg-grid" aria-hidden="true"></div>
+
+<a class="skip-link" href="#main">Skip to generator</a>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-mark">CHBS</span>
+    <span class="brand-sub">Correct Horse Battery Staple</span>
+  </div>
+  <nav class="site-nav">
+    <a href="#advancedSettingsSection">Settings</a>
+    <a href="#historySection">History</a>
+    <a href="#about">About</a>
+    <button id="themeToggle" class="icon-btn" aria-label="Switch to light mode" title="Toggle theme">☾</button>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero">
+    <p class="eyebrow">// local · client-side · zero server calls</p>
+    <h1>Passwords a human can remember.<br>A search space a machine can't guess.</h1>
+    <p class="hero-sub">CHBS randomizes the <em>words</em> and the <em>shape</em> of every password — no two ever look alike. Everything runs in your browser with the Web Crypto API. Nothing is ever transmitted anywhere.</p>
+  </section>
+
+  <section class="generator-card" aria-label="Password generator">
+
+    <div class="structure-preview" id="structurePreview" aria-hidden="true"></div>
+
+    <div class="password-display">
+      <code id="passwordText" class="password-text">Press Generate to begin</code>
+      <div class="password-actions">
+        <button id="copyBtn" class="btn-icon" title="Copy password" aria-label="Copy password">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button id="qrBtn" class="btn-icon" title="Export as QR code" aria-label="Export as QR code">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat">
+        <span class="stat-label">Length</span>
+        <span class="stat-value" id="statLength">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Entropy</span>
+        <span class="stat-value" id="statEntropy">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Password space</span>
+        <span class="stat-value" id="statSpace">—</span>
+      </div>
+      <div class="stat stat-rating">
+        <span class="stat-label">Security rating</span>
+        <span class="stat-value" id="statRatingLabel">—</span>
+      </div>
+    </div>
+
+    <div class="strength-meter">
+      <div class="strength-meter-track"><div class="strength-meter-fill" id="strengthMeterFill"></div></div>
+    </div>
+
+    <div class="suitable-block">
+      <span class="suitable-heading">Suitable for</span>
+      <ul class="suitable-for" id="suitableFor"></ul>
+    </div>
+
+    <button id="entropyBreakdownToggle" class="text-toggle" aria-expanded="false">Show entropy breakdown</button>
+    <ul class="entropy-breakdown" id="entropyBreakdownList" hidden></ul>
+
+    <div class="primary-actions">
+      <button id="generateBtn" class="btn-generate">Generate Password<span class="kbd-hint">G</span></button>
+      <div class="mode-select" role="group" aria-label="Password type">
+        <span class="mode-select-label">Password type <small>— remembered as your default</small></span>
+        <div class="quick-modes">
+          <button id="modeEverything" class="chip-btn" aria-pressed="false">Randomize Everything</button>
+          <button id="modeMax" class="chip-btn" aria-pressed="false">Maximum Security</button>
+          <button id="modeMemorable" class="chip-btn" aria-pressed="false">Memorable</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="multi-results" id="multiResults" hidden></div>
+  </section>
+
+  <section class="advanced-settings" id="advancedSettingsSection">
+    <button id="advancedToggle" class="accordion-toggle" aria-expanded="false" aria-controls="advancedPanel">
+      <span>Advanced Settings</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+
+    <div class="accordion-panel" id="advancedPanel" hidden>
+
+      <fieldset class="settings-group randomization-group">
+        <legend>Randomization</legend>
+        <label class="switch-row">
+          <span>
+            <strong>Randomize Everything</strong>
+            <small>Recommended. Rolls word count, template, capitalization, numbers, separators and symbols fresh on every generation.</small>
+          </span>
+          <input type="checkbox" id="randomizeEverythingToggle">
+          <span class="switch"></span>
+        </label>
+        <p class="settings-warning" id="settingsWarning" hidden>The settings below are ignored while "Randomize Everything" is on — turn it off to fine-tune them.</p>
+      </fieldset>
+
+      <fieldset class="settings-group" data-lockable>
+        <legend>Word Settings</legend>
+
+        <label class="switch-row">
+          <span>Random word count (3–7)</span>
+          <input type="checkbox" id="wordCountRandom">
+          <span class="switch"></span>
+        </label>
+
+        <label class="field-row">
+          <span>Number of words: <strong id="wordCountValue">5</strong></span>
+          <input type="range" id="wordCountRange" min="3" max="7" step="1" value="5">
+        </label>
+
+        <label class="field-row">
+          <span>Shortest word length: <strong id="wordLenMinVal">4</strong></span>
+          <input type="range" id="wordLenMin" min="4" max="8" step="1" value="4">
+        </label>
+        <label class="field-row">
+          <span>Longest word length: <strong id="wordLenMaxVal">8</strong></span>
+          <input type="range" id="wordLenMax" min="4" max="8" step="1" value="8">
+        </label>
+
+        <label class="field-row">
+          <span>Maximum password length</span>
+          <input type="number" id="maxLengthInput" min="16" max="128" value="64">
+        </label>
+      </fieldset>
+
+      <fieldset class="settings-group" data-lockable>
+        <legend>Formatting</legend>
+
+        <label class="field-row">
+          <span>Structural template</span>
+          <select id="templateSelect"></select>
+        </label>
+
+        <label class="switch-row">
+          <span>Include separators</span>
+          <input type="checkbox" id="separatorsToggle">
+          <span class="switch"></span>
+        </label>
+
+        <label class="switch-row">
+          <span>Include symbols</span>
+          <input type="checkbox" id="symbolsToggle">
+          <span class="switch"></span>
+        </label>
+
+        <label class="switch-row">
+          <span>Shuffle word order</span>
+          <input type="checkbox" id="shuffleToggle">
+          <span class="switch"></span>
+        </label>
+      </fieldset>
+
+      <fieldset class="settings-group" data-lockable>
+        <legend>Capitalization</legend>
+        <label class="radio-row"><input type="radio" name="capitalization" value="none"> No capitalization</label>
+        <label class="radio-row"><input type="radio" name="capitalization" value="first-upper"> First letter uppercase</label>
+        <label class="radio-row"><input type="radio" name="capitalization" value="all-caps"> ALL CAPS</label>
+        <label class="radio-row"><input type="radio" name="capitalization" value="random"> Random per-word capitalization</label>
+        <label class="radio-row"><input type="radio" name="capitalization" value="random-style"> Random capitalization style (recommended)</label>
+      </fieldset>
+
+      <fieldset class="settings-group" data-lockable>
+        <legend>Numbers</legend>
+        <label class="radio-row"><input type="radio" id="numRandom" name="numbersMode" value="random"> Random numbers</label>
+        <label class="radio-row"><input type="radio" id="numSequential" name="numbersMode" value="sequential"> Sequential numbers</label>
+        <label class="radio-row"><input type="radio" id="numNone" name="numbersMode" value="none"> No numbers</label>
+        <p class="field-note">Sequential numbers are easy to read aloud, but contribute far less entropy — CHBS reports this honestly in the breakdown above.</p>
+      </fieldset>
+
+      <fieldset class="settings-group">
+        <legend>Output</legend>
+        <label class="field-row">
+          <span>Generate multiple at once</span>
+          <input type="number" id="quantityInput" min="1" max="20" value="1">
+        </label>
+        <label class="switch-row">
+          <span>Save generated passwords to local history</span>
+          <input type="checkbox" id="saveHistoryToggle">
+          <span class="switch"></span>
+        </label>
+      </fieldset>
+
+      <fieldset class="settings-group">
+        <legend>Custom Word List <span class="pill">bonus</span></legend>
+        <p class="field-note">Import your own word list (one word per line, or comma/space separated) instead of the built-in CHBS dictionary. Requires at least 20 words.</p>
+        <textarea id="customWordlistTextarea" rows="3" placeholder="lantern, harbor, velvet, compass, marble ..."></textarea>
+        <div class="row-actions">
+          <label class="file-btn">
+            Upload .txt
+            <input type="file" id="customWordlistFile" accept=".txt" hidden>
+          </label>
+          <button id="customWordlistSaveBtn" class="btn-secondary">Save list</button>
+          <button id="clearCustomWordlistBtn" class="btn-secondary btn-ghost">Clear</button>
+        </div>
+        <p class="field-note" id="customWordlistStatus">No custom word list loaded — using the built-in CHBS dictionary.</p>
+        <label class="switch-row">
+          <span>Use custom word list</span>
+          <input type="checkbox" id="useCustomWordlistToggle">
+          <span class="switch"></span>
+        </label>
+      </fieldset>
+
+      <div class="row-actions settings-footer">
+        <button id="resetSettingsBtn" class="btn-secondary btn-ghost">Reset to defaults</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="history-section" id="historySection">
+    <div class="section-heading-row">
+      <h2>Password History <span class="pill">stored locally only</span></h2>
+      <button id="clearHistoryBtn" class="btn-secondary btn-ghost">Clear history</button>
+    </div>
+    <p class="field-note" id="historyEmpty">Nothing generated yet this session — history stays on this device only, and is off by default in a locked-down browser profile.</p>
+    <div id="historyList" class="history-list"></div>
+  </section>
+
+  <section class="about-section" id="about">
+    <h2>About CHBS</h2>
+    <p>CHBS builds passphrases the way Diceware and the original <em>Correct Horse Battery Staple</em> comic intended — by drawing from a real dictionary rather than shuffling character soup — and then goes further by also randomizing the <strong>shape</strong> of the password: which template, which capitalization, which separators, which numbers. Two passwords generated back to back should never look like they came from the same machine.</p>
+
+    <h3>How the entropy number is calculated</h3>
+    <p>CHBS never displays "it would take N years to crack this password" — that framing depends on guesses about attacker hardware that go stale immediately. Instead, every generation is tracked bit-by-bit: each random decision the generator actually makes (which words, which capitalization, which digits, which characters) is logged the moment it happens, and the entropy shown is the exact sum of those decisions — click "Show entropy breakdown" above to see the full receipt.</p>
+    <p>Word selection uses the <a href="https://www.eff.org/dice" target="_blank" rel="noopener">EFF long word list</a>, filtered to 4–8 letter entries: <strong>6,134 words</strong>, chosen specifically because they're clear to read, spell, and remember, with no easily-confused homophones.</p>
+
+    <h3>Security model</h3>
+    <p>CHBS is designed under the assumption that an attacker knows exactly how it works — every template, every word-list, every setting. Nothing here relies on secrecy of the algorithm. Security comes entirely from the search space and from the Web Crypto API's cryptographically secure randomness (<code>crypto.getRandomValues</code>), never from <code>Math.random()</code>.</p>
+
+    <h3>Runs entirely on your device</h3>
+    <p>There is no backend. No password, setting, or word list is ever sent over the network — everything above happens in local JavaScript, and anything saved (history, preferences, custom word lists) lives in your browser's local storage until you clear it.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>CHBS — open by design. Built with vanilla HTML, CSS and JavaScript, no frameworks, no tracking, no server.</p>
+  <p class="footer-credit">Created by <a href="https://todd-gallant.ca" target="_blank" rel="noopener">Todd Gallant</a></p>
+</footer>
+
+<dialog id="qrModal" class="qr-modal">
+  <div class="qr-modal-inner">
+    <button id="qrClose" class="icon-btn qr-close" aria-label="Close">✕</button>
+    <h3>Scan to transfer</h3>
+    <canvas id="qrCanvas" width="260" height="260"></canvas>
+    <code id="qrPasswordLabel" class="qr-password-label"></code>
+    <p class="field-note">Scanning exposes your password to whatever camera reads it — use this only on trusted devices.</p>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="js/wordlist.js"></script>
+<script src="js/qrcode.js"></script>
+<script src="js/random.js"></script>
+<script src="js/entropy.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
